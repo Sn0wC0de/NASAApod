@@ -15,8 +15,9 @@ let resultsArray = [];
 let favorites = {};
 
 function createDOMNodes(page) {
-    const currentArray = page === 'results' ? resultsArray : Object.values(favorites); 
     console.log(page)
+    const currentArray = page === 'results' ? resultsArray : Object.values(favorites); 
+    
     currentArray.forEach((result) => {
         // card container
         const card = document.createElement('div');
@@ -42,8 +43,13 @@ function createDOMNodes(page) {
         // add to favorites
         const addFavorites= document.createElement('p');
         addFavorites.classList.add('clickable');
-        addFavorites.textContent = 'Add to Favorites';
-        addFavorites.setAttribute('onclick', `saveFavorite('${result.url}')`);
+        if(page === 'results') {
+            addFavorites.textContent = 'Add to Favorites';
+            addFavorites.setAttribute('onclick', `saveFavorite('${result.url}')`);
+        } else {
+            addFavorites.textContent = 'Remove Favorites';
+            addFavorites.setAttribute('onclick', `removeFavorite('${result.url}')`);
+        }
         // card text
         const cardText = document.createElement('p');
         cardText.classList.add('card-text');
@@ -70,7 +76,8 @@ function updateDOM(page) {
     if(localStorage.getItem('nasaFavorites')) {
         favorites = JSON.parse(localStorage.getItem('nasaFavorites'))
         console.log('local storage',favorites)
-    }
+    } else page = 'results';
+    imagesContainer.textContent = '';
     createDOMNodes(page);
 
 }
@@ -81,6 +88,7 @@ async function getNasaPictures() {
     try { 
         const response = await fetch(apiUrl);
         resultsArray = await response.json();
+        console.log(resultsArray)
         updateDOM('favorites');
     } catch (error){
         // catch error here
@@ -104,6 +112,17 @@ function saveFavorite(url) {
             localStorage.setItem('nasaFavorites', JSON.stringify(favorites))
         }
     })
+}
+
+// remove item from favorites
+
+function removeFavorite(url) {
+    if(favorites[url]) {
+        delete favorites[url];
+        // set favorites in localstorage
+        localStorage.setItem('nasaFavorites', JSON.stringify(favorites));
+        updateDOM('favorites');
+    }
 }
 
 getNasaPictures();
