@@ -14,8 +14,20 @@ const apiUrl = `https://api.nasa.gov/planetary/apod?api_key=${apiKey}&count=${co
 let resultsArray = [];
 let favorites = {};
 
+function showContent(page) {
+    window.scrollTo({top:0, behavior:'instant'});
+    if (page === 'results') {
+        resultsNav.classList.remove('hidden');
+        favoritesNav.classList.add('hidden');
+    } else { 
+        resultsNav.classList.add('hidden');
+        favoritesNav.classList.remove('hidden');
+    }
+    loader.classList.add('hidden')
+} 
+
 function createDOMNodes(page) {
-    console.log(page)
+    
     const currentArray = page === 'results' ? resultsArray : Object.values(favorites); 
     
     currentArray.forEach((result) => {
@@ -48,7 +60,7 @@ function createDOMNodes(page) {
             addFavorites.setAttribute('onclick', `saveFavorite('${result.url}')`);
         } else {
             addFavorites.textContent = 'Remove Favorites';
-            addFavorites.setAttribute('onclick', `removeFavorite('${result.url}')`);
+            addFavorites.setAttribute('onclick', `removeFavorite('${result.url}')`); 
         }
         // card text
         const cardText = document.createElement('p');
@@ -75,21 +87,24 @@ function updateDOM(page) {
     // get favoriters from lacol storage
     if(localStorage.getItem('nasaFavorites')) {
         favorites = JSON.parse(localStorage.getItem('nasaFavorites'))
-        console.log('local storage',favorites)
+        
     } else page = 'results';
     imagesContainer.textContent = '';
     createDOMNodes(page);
+    showContent(page);
 
 }
 
 // get  ten images from API
 
 async function getNasaPictures() {
+    // show loade
+    loader.classList.remove('hidden');
     try { 
         const response = await fetch(apiUrl);
         resultsArray = await response.json();
-        console.log(resultsArray)
-        updateDOM('favorites');
+        
+        updateDOM('results');
     } catch (error){
         // catch error here
     }
